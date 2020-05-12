@@ -5,11 +5,11 @@ import base64
 def merge():
     st.header('Merge according to project id')
     export_file = st.file_uploader("Choose an exported csv file", type="csv")
-    stage2_file = st.file_uploader('Choose the stage 2 excel file', type = 'xlsx')
+    stage2_file = st.file_uploader('Choose the stage 2 / qa excel file', type = 'xlsx')
     
     if (export_file != None) and (stage2_file != None):
         stage2_sheet = pd.ExcelFile(stage2_file)
-        sheet = st.selectbox('Which tab in the stage 2 spreadsheet?', stage2_sheet.sheet_names)
+        sheet = st.selectbox('Which tab in the stage 2 / qa spreadsheet?', stage2_sheet.sheet_names)
         df_stage2 = pd.read_excel(stage2_file, sheet_name=sheet)
         df_export = pd.read_csv(export_file)
 
@@ -22,7 +22,7 @@ def merge():
         
 
     
-        left_identifier = st.text_input('stage 2 identifier', value=id)
+        left_identifier = st.text_input('stage 2 / qa identifier', value=id)
         right_identifier = st.text_input('export identifier', value = 'project_id')
         how_to_merge = st.text_input('how to merge', value = 'left')
 
