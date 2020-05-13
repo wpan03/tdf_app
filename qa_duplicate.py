@@ -4,7 +4,7 @@ import base64
 
 def find_repeat():
     st.header('Find Repeated Projects in QA Amended and Stage 2')
-    st.text('Note that this program currently keeps not repeated projects in the ameneded projects.')
+    st.text('Note that this program currently removes duplicate project from spreadsheet.')
     qa_file = st.file_uploader("Choose a qa excel file", type="xlsx")
     stage2_file = st.file_uploader('Choose the stage 2 excel file', type = 'xlsx')
     
