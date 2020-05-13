@@ -4,12 +4,12 @@ import base64
 import webbrowser
 from PIL import Image
 
-from search import search_duplicate
+from search_duplicate import search_duplicate
 from transfer_created import ocp_transfer_created
 from transfer_amended import transfer_amend
 from merge import merge
-from examine import examine
-from qa_duplicate import find_repeat
+from logical_check import examine
+from find_repeat import find_repeat
 
 
 selectbox = st.sidebar.selectbox(
@@ -39,7 +39,7 @@ elif selectbox == 'Search Duplicate':
 elif selectbox == "Merge":
   merge()
 
-elif selectbox == 'Examine':
+elif selectbox == 'Logical Consistency Check':
     examine()
 
 elif selectbox == 'Find Repeat':
