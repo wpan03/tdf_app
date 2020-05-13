@@ -15,7 +15,7 @@ from qa_duplicate import find_repeat
 selectbox = st.sidebar.selectbox(
     'What do you want to do?',
     ('Home Page','Transfer OCP Created Project', 'Transfer OCP Amended Project', 
-    'Search Duplicate','Merge', 'Examine', 'Find Repeat')
+    'Search Duplicate','Merge', 'Logical Consistency Check', 'Find Repeat')
 )
 
 st.sidebar.info("View [source code](https://github.com/wpan03/tdf_app)")
