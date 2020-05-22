@@ -24,6 +24,7 @@ if selectbox == 'Home Page':
     st.title("Welcome！")
     st.markdown("This website contains some useful techniques for TUFF's work. ")
     st.markdown('**Please choose what you want to do in the side bar.**')
+    st.markdown('If you are here to **transfer projects** among stages, please see detailed instructions [here](https://docs.google.com/document/d/1Yfj52s-5jL8ActupitHKBFT-8E3qW6wHm5SWotvtla8/edit).')
     image = Image.open('sunrise.png')
     st.image(image, use_column_width=True)
 
