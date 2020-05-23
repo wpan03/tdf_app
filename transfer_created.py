@@ -45,16 +45,16 @@ def ocp_transfer_created():
         # merge the created project id in each tab
         for i in range(len(sheets)):
             if i == 0:
-                df = pd.read_excel(file, sheet_name=sheets[i], skiprows=[0])
+                df = all_sheet.parse(i, skiprows=[0])
                 df = reshape_dataframe(df)
                 df_select = df.loc[:, ['value']].reset_index(drop=True)
                 df_select.columns = ['Projects Created']
             elif i == 1:
-                df = pd.read_excel(file, sheet_name=sheets[i])
+                df = all_sheet.parse(i)
                 df_select = df[['Created Project ID']]
                 df_select.columns = ['Projects Created']
             elif i >= 2:
-                df = pd.read_excel(file, sheet_name=sheets[i])
+                df = all_sheet.parse(i)
                 df_select = df[['Projects Created']]
 
             store.append(df_select)

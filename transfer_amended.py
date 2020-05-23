@@ -3,26 +3,27 @@ import base64
 import streamlit as st
 
 #Functions for extracting id from stage 1 spreadsheet
-def get_amend(file_name, sheets):
+def get_amend(all_sheet):
     store = []
+    sheets = all_sheet.sheet_names
 
     for i in range(len(sheets)):
         if i == 0:
-            df = pd.read_excel(file_name, sheet_name=sheets[i], skiprows=[0])
+            df = all_sheet.parse(i, skiprows=[0])
             for i in list(df.columns):
                 if 'Amended' in i:
                     select1 = i
             df_select = df[[select1]]
             df_select.columns = ['Projects Amended']
         elif i == 1:
-            df = pd.read_excel(file_name, sheet_name=sheets[i])
+            df = all_sheet.parse(i)
             for i in list(df.columns):
                 if 'Existing' in i:
                     select2 = i
             df_select = df[[select2]]
             df_select.columns = ['Projects Amended']
         elif i >= 2:
-            df = pd.read_excel(file_name, sheet_name=sheets[i])
+            df = all_sheet.parse(i)
             for i in list(df.columns):
                 if 'Amend' in i:
                     select3 = i
@@ -76,7 +77,7 @@ def transfer_amend():
 
             #Run the function
             file_name = stage1
-            df_amend = get_amend(file_name, sheets)
+            df_amend = get_amend(all_sheet)
 
             #Get rid of repeated id in stage 2
             id = [s for s in list(df_st2.columns) if "id" in s][0]
