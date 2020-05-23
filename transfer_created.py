@@ -35,7 +35,7 @@ def ocp_transfer_created():
         df = df.melt().dropna(axis=0)
         return df
 
-    def get_create_ocp(file):
+    def get_create_ocp(file, delimiter):
 
         # Get all the tab name in the excel sheet
         store = []
@@ -62,9 +62,9 @@ def ocp_transfer_created():
 
         # break projects in one cell to one project per row
         df['Projects Created'] = df['Projects Created'].astype(str)
-        special = df['Projects Created'].str.split(',').notnull()
+        special = df['Projects Created'].str.split(delimiter).notnull()
         df.loc[special, 'Projects Created'] = df[special]['Projects Created'].str.split(
-            ',')
+            delimiter)
         df = df.explode('Projects Created')
 
         # Format each cell
@@ -81,9 +81,10 @@ def ocp_transfer_created():
     uploaded_file = st.file_uploader(
         "Choose a the stage 1 excel file", type="xlsx")
     country = st.text_input('Country')
+    delimiter = st.text_input('What delimiter stage 1 RA use to separate project id?', ',')
 
     if st.button('Start Transfer!'):
-        df_ocp = get_create_ocp(uploaded_file)
+        df_ocp = get_create_ocp(uploaded_file, delimiter)
         df_ocp['source'] = 'OCP'
         df_ocp['country'] = country
         df_ocp = df_ocp[['source', 'country', 'Projects Created']]
@@ -103,7 +104,6 @@ def ocp_transfer_created():
         st.text("You transferred about {} projects".format(df_ocp.shape[0]))
 
     st.subheader('Break text to different line')
-    delimiter = st.text_input('delimeter', ',')
     text_input = st.text_input('text')
     text_input_list = text_input.split(delimiter)
     if st.button('Split!'):

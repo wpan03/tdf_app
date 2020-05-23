@@ -3,7 +3,7 @@ import base64
 import streamlit as st
 
 #Functions for extracting id from stage 1 spreadsheet
-def get_amend(all_sheet):
+def get_amend(all_sheet, delimiter):
     store = []
     sheets = all_sheet.sheet_names
 
@@ -36,8 +36,8 @@ def get_amend(all_sheet):
 
     #break projects in one cell to one project per row 
     df['Projects Amended'] = df['Projects Amended'].astype(str)
-    special = df['Projects Amended'].str.split(',').notnull()
-    df.loc[special, 'Projects Amended'] = df[special]['Projects Amended'].str.split(',')
+    special = df['Projects Amended'].str.split(delimiter).notnull()
+    df.loc[special, 'Projects Amended'] = df[special]['Projects Amended'].str.split(delimiter)
     df = df.explode('Projects Amended')
 
     df['Projects Amended'] = df['Projects Amended'].astype(str)
@@ -72,12 +72,14 @@ def transfer_amend():
         df_st2 = pd.read_excel(stage2, sheet_name= stage2_sheet)
         df_st2.columns = df_st2.columns.str.lower()
         country = st.selectbox('Which Country?', df_st2['country'].unique())
+        delimiter = st.text_input('What delimiter stage 1 RA use to separate project id?', ',')
+
   
         if st.button('Start Transfer!'):
 
             #Run the function
             file_name = stage1
-            df_amend = get_amend(all_sheet)
+            df_amend = get_amend(all_sheet, delimiter)
 
             #Get rid of repeated id in stage 2
             id = [s for s in list(df_st2.columns) if "id" in s][0]
