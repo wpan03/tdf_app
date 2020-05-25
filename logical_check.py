@@ -1,4 +1,5 @@
 import pandas as pd
+import pandas as pd
 import streamlit as st
 
 def examine():
@@ -31,7 +32,3 @@ def examine():
         oda_not_development = (df_of_active['intent'] != 'Development') & (df_of_active['flow_class'] == 'ODA_like')
         df_oda_not_development = df_of_active[oda_not_development]
         st.table(df_oda_not_development)
-    
-    
-    
-    

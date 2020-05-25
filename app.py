@@ -3,6 +3,8 @@ import pandas as pd
 import base64
 import webbrowser
 from PIL import Image
+import plotly.express as px
+
 
 from search_duplicate import search_duplicate
 from transfer_created import ocp_transfer_created
@@ -10,12 +12,13 @@ from transfer_amended import transfer_amend
 from merge import merge
 from logical_check import examine
 from find_repeat import find_repeat
+from country_profile import get_profile
 
 
 selectbox = st.sidebar.selectbox(
     'What do you want to do?',
     ('Home Page', 'Transfer OCP Created Project', 'Transfer OCP Amended Project',
-     'Search Duplicate', 'Merge', 'Logical Consistency Check', 'Find Repeat')
+     'Search Duplicate', 'Merge', 'Logical Consistency Check', 'Find Repeat','Country Profile')
 )
 
 st.sidebar.info("View [source code](https://github.com/wpan03/tdf_app)")
@@ -45,3 +48,6 @@ elif selectbox == 'Logical Consistency Check':
 
 elif selectbox == 'Find Repeat':
     find_repeat()
+
+elif selectbox == 'Country Profile':
+    get_profile()
