@@ -19,8 +19,8 @@ def merge():
         df_stage2.columns = df_stage2.columns.str.strip()
         id = [s for s in list(df_stage2.columns) if "id" in s.lower()][0]
 
-        country = st.selectbox('Which country?', df_stage2['Country'].unique())
-        df_stage2 = df_stage2[df_stage2['Country'] == country]
+        country = st.multiselect('Which countries?', df_stage2['Country'].unique())
+        df_stage2 = df_stage2[df_stage2['Country'].isin(country)]
 
         left_identifier = st.text_input('stage 2 / qa identifier', value=id)
         right_identifier = st.text_input(
