@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import streamlit as st
 import base64
 
@@ -19,9 +20,17 @@ def merge():
         df_stage2.columns = df_stage2.columns.str.strip()
         id = [s for s in list(df_stage2.columns) if "id" in s.lower()][0]
 
+        #Add info for year uncertain
+        df_export['year_info'] = np.where(df_export['year_uncertain'] == True, '(uncertain)', '')
+        df_export['year'] = df_export['year'].astype(str)
+        df_export['year_acc'] = df_export['year'] + df_export['year_info']
+        df_export.drop('year_info',axis=1, inplace=True)
+
+        #Select Country
         country = st.multiselect('Which countries?', df_stage2['Country'].unique())
         df_stage2 = df_stage2[df_stage2['Country'].isin(country)]
 
+        #Choose idenifier
         left_identifier = st.text_input('stage 2 / qa identifier', value=id)
         right_identifier = st.text_input(
             'export identifier', value='project_id')
@@ -40,7 +49,7 @@ def merge():
                     csv.encode()).decode()  # some strings <-> bytes conversions necessary here
                 return f'<a href="data:file/csv;base64,{b64}" download="myfilename.csv">Download csv file</a>'
 
-            selections = ['project_id', 'year', 'flow_class', 'Country']
+            selections = ['project_id', 'year_acc', 'flow_class', 'Country']
             df_merge = df_merge[selections]
             st.markdown(get_table_download_link(
                 df_merge), unsafe_allow_html=True)
