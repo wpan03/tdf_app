@@ -15,14 +15,14 @@ def merge():
         sheet = st.selectbox(
             'Which tab in the stage 2 / qa spreadsheet?', stage2_sheet.sheet_names)
         df_stage2 = pd.read_excel(stage2_file, sheet_name=sheet)
-        df_export = pd.read_csv(export_file)
+        df_export = pd.read_csv(export_file, dtype={'year':'string'})
 
         df_stage2.columns = df_stage2.columns.str.strip()
         id = [s for s in list(df_stage2.columns) if "id" in s.lower()][0]
 
         #Add info for year uncertain
+        df_export['year'] = df_export['year'].fillna('')
         df_export['year_info'] = np.where(df_export['year_uncertain'] == True, '(uncertain)', '')
-        df_export['year'] = df_export['year'].astype(str)
         df_export['year_acc'] = df_export['year'] + df_export['year_info']
         df_export.drop('year_info',axis=1, inplace=True)
 
