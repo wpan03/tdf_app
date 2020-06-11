@@ -59,7 +59,7 @@ def transfer_amend():
 
     stage1 = st.file_uploader("Choose a the stage 1 excel file", type="xlsx")
     stage2 = st.file_uploader("Choose a stage 2 excel file", type = "xlsx")
-
+    delimiter = st.text_input('What delimiter stage 1 RA use to separate project id?', ',')
 
     if (stage1 != None) and (stage2 != None):
         
@@ -72,7 +72,6 @@ def transfer_amend():
         df_st2 = pd.read_excel(stage2, sheet_name= stage2_sheet)
         df_st2.columns = df_st2.columns.str.lower()
         country = st.selectbox('Which Country?', df_st2['country'].unique())
-        delimiter = st.text_input('What delimiter stage 1 RA use to separate project id?', ',')
 
   
         if st.button('Start Transfer!'):
@@ -105,9 +104,9 @@ def transfer_amend():
             st.text('You get rid of {} repeated projects'.format(df_amend.shape[0]-df_not_repeat.shape[0]))
             st.text("You finally transferred about {} projects".format(df_not_repeat.shape[0]))
 
-        st.subheader('Break text to different line')
-        text_input = st.text_input('text')
-        text_input_list = text_input.split(delimiter)
-        if st.button('Split!'):
-             for i in text_input_list:
-                 st.write(i)
+    st.subheader('Break text to different line')
+    text_input = st.text_input('text')
+    text_input_list = text_input.split(delimiter)
+    if st.button('Split!'):
+         for i in text_input_list:
+                st.write(i)
