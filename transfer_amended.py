@@ -104,3 +104,10 @@ def transfer_amend():
             st.text('Congratulations!')
             st.text('You get rid of {} repeated projects'.format(df_amend.shape[0]-df_not_repeat.shape[0]))
             st.text("You finally transferred about {} projects".format(df_not_repeat.shape[0]))
+
+        st.subheader('Break text to different line')
+        text_input = st.text_input('text')
+        text_input_list = text_input.split(delimiter)
+        if st.button('Split!'):
+             for i in text_input_list:
+                 st.write(i)
