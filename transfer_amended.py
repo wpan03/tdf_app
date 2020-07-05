@@ -2,8 +2,7 @@ import pandas as pd
 import base64
 import streamlit as st
 
-#Functions for extracting id from stage 1 spreadsheet
-def get_amend(all_sheet, delimiter):
+def merge_df(all_sheet):
     store = []
     sheets = all_sheet.sheet_names
 
@@ -32,7 +31,11 @@ def get_amend(all_sheet, delimiter):
 
         store.append(df_select)
 
-    df = pd.concat(store).dropna().reset_index(drop=True)
+    df_merged = pd.concat(store).dropna().reset_index(drop=True)
+
+    return df_merged
+
+def clean_df(df, delimiter):
 
     #break projects in one cell to one project per row 
     df['Projects Amended'] = df['Projects Amended'].astype(str)
@@ -47,9 +50,17 @@ def get_amend(all_sheet, delimiter):
     df_clean = df.drop_duplicates('Projects Amended').reset_index(drop=True)
     return df_clean
 
-def transfer_amend():
+def get_amend(all_sheet, delimiter):
+    """extracting id from stage 1 spreadsheet"""
 
-    #Title and file upload
+    df_merged = merge_df(all_sheet)
+    df_clean  = clean_df(df_merged, delimiter)
+
+    return df_clean
+
+def make_page_title():
+    """Make the title for the page"""
+
     st.header('Transfer Amended OCP Project')
     ocp_amend_requirement  = st.checkbox('ocp amend requirment')
     if ocp_amend_requirement:
@@ -57,27 +68,56 @@ def transfer_amend():
         st.markdown("+ There should be one line above the header in the general tab")
         st.markdown("+ There should be no line above the header in the project list and year tab")
 
+def get_table_download_link(df):
+    """Generates a link allowing the data in a given panda dataframe to be downloaded
+    in:  dataframe
+    out: href string"""
+        
+    csv = df.to_csv(index=False)
+    b64 = base64.b64encode(
+    csv.encode()).decode()  # some strings <-> bytes conversions necessary here
+    return f'<a href="data:file/csv;base64,{b64}" download="myfilename.csv">Download csv file</a>'
+
+def split_text_area(delimiter):
+    
+    st.subheader('Break text to different line')
+    text_input = st.text_input('text')
+    text_input_list = text_input.split(delimiter)
+    if st.button('Split!'):
+         for i in text_input_list:
+                st.write(i)
+
+def read_stage2(file):
+    """Read Stage 2 Spreadsheet"""
+
+    all_stage2_sheet = pd.ExcelFile(file)
+    stage2_sheet = st.selectbox('Which tab in the stage 2 spreadsheet?', all_stage2_sheet.sheet_names)
+    df_st2 = pd.read_excel(file, sheet_name= stage2_sheet)
+    df_st2.columns = df_st2.columns.str.lower()
+
+    return df_st2
+
+def transfer_amend():
+
+    make_page_title()
+
     stage1 = st.file_uploader("Choose a the stage 1 excel file", type="xlsx")
     stage2 = st.file_uploader("Choose a stage 2 excel file", type = "xlsx")
     delimiter = st.text_input('What delimiter stage 1 RA use to separate project id?', ',')
 
     if (stage1 != None) and (stage2 != None):
         
+        #Load stage1 spreadsheet
         all_sheet = pd.ExcelFile(stage1)   
-        sheets = all_sheet.sheet_names
 
         #Read Stage 2 Spreadsheet 
-        all_stage2_sheet = pd.ExcelFile(stage2)
-        stage2_sheet = st.selectbox('Which tab in the stage 2 spreadsheet?', all_stage2_sheet.sheet_names)
-        df_st2 = pd.read_excel(stage2, sheet_name= stage2_sheet)
-        df_st2.columns = df_st2.columns.str.lower()
+        df_st2 = read_stage2(stage2)
         country = st.selectbox('Which Country?', df_st2['country'].unique())
 
   
         if st.button('Start Transfer!'):
 
             #Run the function
-            file_name = stage1
             df_amend = get_amend(all_sheet, delimiter)
 
             #Get rid of repeated id in stage 2
@@ -89,24 +129,11 @@ def transfer_amend():
             df_not_repeat['Source'] = 'OCP'
             df_not_repeat['Country'] = country
 
-            def get_table_download_link(df):
-                """Generates a link allowing the data in a given panda dataframe to be downloaded
-                in:  dataframe
-                out: href string"""
-                    
-                csv = df.to_csv(index=False)
-                b64 = base64.b64encode(
-                csv.encode()).decode()  # some strings <-> bytes conversions necessary here
-                return f'<a href="data:file/csv;base64,{b64}" download="myfilename.csv">Download csv file</a>'
 
             st.markdown(get_table_download_link(df_not_repeat), unsafe_allow_html=True)    
             st.text('Congratulations!')
-            st.text('You get rid of {} repeated projects'.format(df_amend.shape[0]-df_not_repeat.shape[0]))
-            st.text("You finally transferred about {} projects".format(df_not_repeat.shape[0]))
+            st.text(f'You get rid of {df_amend.shape[0]-df_not_repeat.shape[0]} repeated projects')
+            st.text(f"You finally transferred about {df_not_repeat.shape[0]} projects")
+        
+    split_text_area(delimiter)
 
-    st.subheader('Break text to different line')
-    text_input = st.text_input('text')
-    text_input_list = text_input.split(delimiter)
-    if st.button('Split!'):
-         for i in text_input_list:
-                st.write(i)
