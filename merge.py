@@ -3,7 +3,16 @@ import numpy as np
 import streamlit as st
 import base64
 
+def get_table_download_link(df):
+    """Generates a link allowing the data in a given panda dataframe to be downloaded
+    in:  dataframe
+    out: href string"""
+    csv = df.to_csv(index=False)
+    b64 = base64.b64encode(
+        csv.encode()).decode()  # some strings <-> bytes conversions necessary here
+    return f'<a href="data:file/csv;base64,{b64}" download="myfilename.csv">Download csv file</a>'
 
+    
 def merge():
     st.header('Merge according to project id')
     export_file = st.file_uploader("Choose an exported csv file", type="csv")
@@ -39,15 +48,6 @@ def merge():
         if st.button('merge'):
             df_merge = pd.merge(df_stage2, df_export, left_on=left_identifier,
                                 right_on=right_identifier, how=how_to_merge)
-
-            def get_table_download_link(df):
-                """Generates a link allowing the data in a given panda dataframe to be downloaded
-                in:  dataframe
-                out: href string"""
-                csv = df.to_csv(index=False)
-                b64 = base64.b64encode(
-                    csv.encode()).decode()  # some strings <-> bytes conversions necessary here
-                return f'<a href="data:file/csv;base64,{b64}" download="myfilename.csv">Download csv file</a>'
 
             selections = ['project_id', 'year_acc', 'flow_class', 'Country']
             df_merge = df_merge[selections]
