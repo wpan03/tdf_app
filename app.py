@@ -1,10 +1,5 @@
 import streamlit as st
-import pandas as pd
-import base64
-import webbrowser
 from PIL import Image
-import plotly.express as px
-
 
 from search_duplicate import search_duplicate
 from transfer_created import ocp_transfer_created
