@@ -44,9 +44,10 @@ def merge_df(all_sheet):
             df_select = df[['Projects Created']]
 
         store.append(df_select)
-        df_merged = pd.concat(store).dropna().reset_index(drop=True) 
+        
+    df_merged = pd.concat(store).dropna().reset_index(drop=True) 
 
-        return df_merged
+    return df_merged
 
 def clean_merge(df, delimiter):
 
