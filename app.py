@@ -8,12 +8,14 @@ from merge import merge
 from logical_check import examine
 from find_repeat import find_repeat
 from country_profile import get_profile
+from source_scraper import save_source
 
 
 selectbox = st.sidebar.selectbox(
     'What do you want to do?',
     ('Home Page', 'Transfer OCP Created Project', 'Transfer OCP Amended Project',
-     'Search Duplicate', 'Merge', 'Logical Consistency Check', 'Find Repeat','Country Profile')
+     'Search Duplicate', 'Merge', 'Logical Consistency Check', 
+     'Find Repeat','Country Profile', 'Scrap Source')
 )
 
 st.sidebar.info("View [source code](https://github.com/wpan03/tdf_app)")
@@ -46,3 +48,6 @@ elif selectbox == 'Find Repeat':
 
 elif selectbox == 'Country Profile':
     get_profile()
+
+elif selectbox == 'Scrap Source':
+    save_source()
