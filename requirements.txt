@@ -5,5 +5,5 @@ plotly == 4.7.1
 numpy == 1.18.1
 requests == 2.22.0
 mechanize == 0.4.5
-bs4 == 4.8.2
+beautifulsoup4 == 4.8.2
 validators == 0.15.0
