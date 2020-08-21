@@ -23,27 +23,48 @@ def reshape_dataframe(df):
     df = df.melt().dropna(axis=0)
     return df
 
-def merge_df(all_sheet):
+def merge_df(all_sheet, update_2018=True):
     """merge the created project id in each tab"""
 
     store = []
     sheets = all_sheet.sheet_names
 
-    for i in range(len(sheets)):
-        if i == 0:
-            df = all_sheet.parse(i, skiprows=[0])
-            df = reshape_dataframe(df)
-            df_select = df.loc[:, ['value']].reset_index(drop=True)
-            df_select.columns = ['Projects Created']
-        elif i == 1:
-            df = all_sheet.parse(i)
-            df_select = df[['Created Project ID']]
-            df_select.columns = ['Projects Created']
-        elif i >= 2:
-            df = all_sheet.parse(i)
-            df_select = df[['Projects Created']]
+    if update_2018:
+        for i in range(len(sheets)):
+            if i == 0:
+                df = all_sheet.parse(i, skiprows=[0])
+                df = reshape_dataframe(df)
+                df_select = df.loc[:, ['value']].reset_index(drop=True)
+                df_select.columns = ['Projects Created']
+            elif i == 1:
+                df = all_sheet.parse(i)
+                df_select = df[['Projects Created']]
+            elif i == 2:
+                df = all_sheet.parse(i)
+                df_select = df[['Created Project ID']]
+                df_select.columns = ['Projects Created']
+            elif i >= 3:
+                df = all_sheet.parse(i)
+                df_select = df[['Projects Created']]
 
-        store.append(df_select)
+            store.append(df_select)
+
+    else:
+        for i in range(len(sheets)):
+            if i == 0:
+                df = all_sheet.parse(i, skiprows=[0])
+                df = reshape_dataframe(df)
+                df_select = df.loc[:, ['value']].reset_index(drop=True)
+                df_select.columns = ['Projects Created']
+            elif i == 1:
+                df = all_sheet.parse(i)
+                df_select = df[['Created Project ID']]
+                df_select.columns = ['Projects Created']
+            elif i >= 2:
+                df = all_sheet.parse(i)
+                df_select = df[['Projects Created']]
+
+            store.append(df_select)
         
     df_merged = pd.concat(store).dropna().reset_index(drop=True) 
 
@@ -69,10 +90,10 @@ def clean_merge(df, delimiter):
 
         return df_clean
 
-def get_create_ocp(file, delimiter):
+def get_create_ocp(file, delimiter, update_2018):
 
     all_sheet = pd.ExcelFile(file)
-    df_merged = merge_df(all_sheet)
+    df_merged = merge_df(all_sheet, update_2018)
     df_clean = clean_merge(df_merged, delimiter)
 
     return df_clean
@@ -118,9 +139,10 @@ def ocp_transfer_created():
         "Choose a the stage 1 excel file", type="xlsx")
     country = st.text_input('Country')
     delimiter = st.text_input('What delimiter stage 1 RA use to separate project id?', ',')
+    update_2018 = st.checkbox('Is this excel in 2018 updated format?', value=True)
 
     if st.button('Start Transfer!'):
-        df_ocp = get_create_ocp(uploaded_file, delimiter)
+        df_ocp = get_create_ocp(uploaded_file, delimiter, update_2018)
         df_ocp['source'] = 'OCP'
         df_ocp['country'] = country
         df_ocp = df_ocp[['source', 'country', 'Projects Created']]
