@@ -2,37 +2,94 @@ import pandas as pd
 import base64
 import streamlit as st
 
-def merge_df(all_sheet):
+def reshape_dataframe(df):
+    """
+    Only keep columns with amended projects information in the dataframe
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        a dataframe with format from general tab of OCP spreadsheet 
+
+    Returns
+    -------
+    df : pd.DataFrame
+    the shrinked dataframe 
+    """
+    filter_col = [col for col in df if col.startswith('Projects Amended')]
+    df = df[filter_col]
+    df = df.dropna(axis=1, how='all')
+    df = df.melt().dropna(axis=0)
+    return df
+
+def merge_df(all_sheet, update_2018):
     store = []
     sheets = all_sheet.sheet_names
 
-    for i in range(len(sheets)):
-        if i == 0:
-            df = all_sheet.parse(i, skiprows=[0])
-            for i in list(df.columns):
-                if 'Amended' in i:
-                    select1 = i
-            df_select = df[[select1]]
-            df_select.columns = ['Projects Amended']
-        elif i == 1:
-            df = all_sheet.parse(i)
-            for i in list(df.columns):
-                if 'Existing' in i:
-                    select2 = i
-            df_select = df[[select2]]
-            df_select.columns = ['Projects Amended']
-        elif i >= 2:
-            df = all_sheet.parse(i)
-            for i in list(df.columns):
-                if 'Amend' in i:
-                    select3 = i
-            df_select = df[[select3]]
-            df_select.columns = ['Projects Amended']
+    if update_2018:
+        for i in range(len(sheets)):
+            #General
+            if i == 0:
+                df = all_sheet.parse(i, skiprows=[0])
+                df = reshape_dataframe(df)
+                df_select = df.loc[:, ['value']].reset_index(drop=True)
+                df_select.columns = ['Projects Amended']
+            #Project Revisions
+            elif i == 1:
+                df = all_sheet.parse(i)
+                for i in list(df.columns):
+                    if 'Amended' in i:
+                        select1 = i
+                        df_select = df[[select1]]
+                        df_select.columns = ['Projects Amended']
+                        break
+            #Project List
+            elif i == 2:
+                df = all_sheet.parse(i)
+                for i in list(df.columns):
+                    if 'Existing' in i:
+                        select2 = i
+                        df_select = df[[select2]]
+                        df_select.columns = ['Projects Amended']
+                        break
+            #years tab            
+            elif i >= 2:
+                df = all_sheet.parse(i)
+                for i in list(df.columns):
+                    if 'Amend' in i:
+                        select3 = i
+                        df_select = df[[select3]]
+                        df_select.columns = ['Projects Amended']
+                        break
 
-        store.append(df_select)
+            store.append(df_select)
 
+    else:
+        for i in range(len(sheets)):
+            if i == 0:
+                df = all_sheet.parse(i, skiprows=[0])
+                for i in list(df.columns):
+                    if 'Amended' in i:
+                        select1 = i
+                df_select = df[[select1]]
+                df_select.columns = ['Projects Amended']
+            elif i == 1:
+                df = all_sheet.parse(i)
+                for i in list(df.columns):
+                    if 'Existing' in i:
+                        select2 = i
+                df_select = df[[select2]]
+                df_select.columns = ['Projects Amended']
+            elif i >= 2:
+                df = all_sheet.parse(i)
+                for i in list(df.columns):
+                    if 'Amend' in i:
+                        select3 = i
+                df_select = df[[select3]]
+                df_select.columns = ['Projects Amended']
+
+            store.append(df_select)
     df_merged = pd.concat(store).dropna().reset_index(drop=True)
-
     return df_merged
 
 def clean_df(df, delimiter):
@@ -50,10 +107,10 @@ def clean_df(df, delimiter):
     df_clean = df.drop_duplicates('Projects Amended').reset_index(drop=True)
     return df_clean
 
-def get_amend(all_sheet, delimiter):
+def get_amend(all_sheet, delimiter, update_2018):
     """extracting id from stage 1 spreadsheet"""
 
-    df_merged = merge_df(all_sheet)
+    df_merged = merge_df(all_sheet, update_2018)
     df_clean  = clean_df(df_merged, delimiter)
 
     return df_clean
@@ -104,6 +161,7 @@ def transfer_amend():
     stage1 = st.file_uploader("Choose a the stage 1 excel file", type="xlsx")
     stage2 = st.file_uploader("Choose a stage 2 excel file", type = "xlsx")
     delimiter = st.text_input('What delimiter stage 1 RA use to separate project id?', ',')
+    update_2018 = st.checkbox('Is this excel in 2018 updated format?', value=True)
 
     if (stage1 != None) and (stage2 != None):
         
@@ -118,7 +176,7 @@ def transfer_amend():
         if st.button('Start Transfer!'):
 
             #Run the function
-            df_amend = get_amend(all_sheet, delimiter)
+            df_amend = get_amend(all_sheet, delimiter, update_2018)
 
             #Get rid of repeated id in stage 2
             id = [s for s in list(df_st2.columns) if "id" in s][0]
@@ -128,7 +186,6 @@ def transfer_amend():
             #Export spread sheet
             df_not_repeat['Source'] = 'OCP'
             df_not_repeat['Country'] = country
-
 
             st.markdown(get_table_download_link(df_not_repeat), unsafe_allow_html=True)    
             st.text('Congratulations!')
