@@ -38,7 +38,12 @@ def merge_df(all_sheet, update_2018=True):
                 df_select.columns = ['Projects Created']
             elif i == 1:
                 df = all_sheet.parse(i)
-                df_select = df[['Projects Created']]
+                for i in list(df.columns):
+                    if 'Created' in i:
+                        select1 = i
+                        df_select = df[[select1]]
+                        df_select.columns = ['Projects Created']
+                        break
             elif i == 2:
                 df = all_sheet.parse(i)
                 df_select = df[['Created Project ID']]
