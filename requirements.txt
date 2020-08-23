@@ -1,7 +1,6 @@
 pandas == 1.0.3
 streamlit ==  0.65.2
 xlrd == 1.2.0
-plotly == 4.7.1
 numpy == 1.18.1
 requests == 2.22.0
 mechanize == 0.4.5

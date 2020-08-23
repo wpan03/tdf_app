@@ -15,7 +15,7 @@ selectbox = st.sidebar.selectbox(
     'What do you want to do?',
     ('Home Page', 'Transfer OCP Created Project', 'Transfer OCP Amended Project',
      'Search Duplicate', 'Merge', 'Logical Consistency Check', 
-     'Find Repeat','Country Profile', 'Scrap Source')
+     'Find Repeat', 'Scrap Source')
 )
 
 st.sidebar.info("View [source code](https://github.com/wpan03/tdf_app)")
@@ -48,9 +48,6 @@ elif selectbox == 'Logical Consistency Check':
 
 elif selectbox == 'Find Repeat':
     find_repeat()
-
-elif selectbox == 'Country Profile':
-    get_profile()
 
 elif selectbox == 'Scrap Source':
     save_source()
