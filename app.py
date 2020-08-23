@@ -7,7 +7,6 @@ from transfer_amended import transfer_amend
 from merge import merge
 from logical_check import examine
 from find_repeat import find_repeat
-from country_profile import get_profile
 from source_scraper import save_source
 
 
