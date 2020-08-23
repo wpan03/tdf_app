@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import tensorflow_hub as hub
+import numpy as np
 
 def filter_search(df, keyword, year_min=2000, year_max=2019, donor='China', Active=True):
 
@@ -10,6 +12,58 @@ def filter_search(df, keyword, year_min=2000, year_max=2019, donor='China', Acti
         df = df[df['active'] == 'Active']
     result = df[df['description'].str.contains(keyword, na=False, case=False)| df['title'].str.contains(keyword, na=False, case=False)].reset_index(drop=True)
     return result
+
+@st.cache
+def load_model():
+    embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder-large/5")
+    return embed
+
+def cosine(u, v):
+    return np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v))
+
+def get_embedding(embed, df):
+    titles = df['title'].to_list()
+    title_embeddings = embed(titles)
+
+    return title_embeddings
+
+
+def find_most_likely_duplicate(df, project_id, embeddings):
+    
+    index = df[df['project_id'] == project_id].index[0]
+    target = df.iloc[index, :]
+    target_embed = embeddings[index]
+    
+    potentials = {}
+    potential_titles = []
+    
+    for i in range(df.shape[0]):
+
+        if i == index:
+            continue
+            
+        comparison = df.iloc[i, :]
+        com_embed = embeddings[i]
+        title_score = cosine(target_embed, com_embed) * 0.3
+        
+        year_score = (np.abs((target['year'] - comparison['year'])) <=2) * 0.15
+        flow_score = (target['flow'] == comparison['flow']) * 0.1
+        official_score = (target['is_official_finance'] == comparison['is_official_finance']) * 0.1
+        crs_score = (target['crs_sector_name'] == comparison['crs_sector_name']) * 0.1
+        agency_score = (target['donor_agency'] == comparison['donor_agency']) * 0.05
+        
+        score = title_score + year_score + flow_score + crs_score + agency_score + official_score
+
+        potentials[comparison['project_id']] = score
+        potential_titles.append(comparison['title'])
+
+    df_potentials = pd.DataFrame(potentials,index=[0]).T.reset_index()
+    df_potentials.columns = ['id', 'score']
+    df_potentials['title'] =  potential_titles
+    df_potentials = df_potentials.sort_values('score', ascending=False).reset_index(drop=True)    
+    
+    
+    return  df_potentials.head()
 
 def write_useful_resources():
 
@@ -63,8 +117,23 @@ def search_duplicate():
         index = st.number_input('which one', value=-1)
         if index != -1:
             st.write(result.loc[index]['description'])
+    
+    st.header('Duplicate Suggestions')
+
+    project_id = st.number_input('project_id', value=0)
+      
+    suggestion = st.button('make suggestions')
+    if suggestion:
+       embed = load_model()
+       embeddings = get_embedding(embed, df)
+       df_potential = find_most_likely_duplicate(df, project_id, embeddings)
+       st.write('The original title is:', df[df['project_id'] == project_id]['title'].iloc[0])
+       st.table(df_potential)
+
+  st.header('Useful Sources')
 
   open_project()
-
   write_useful_resources()
+  
+
 
