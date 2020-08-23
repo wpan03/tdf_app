@@ -20,6 +20,9 @@ selectbox = st.sidebar.selectbox(
 
 st.sidebar.info("View [source code](https://github.com/wpan03/tdf_app)")
 
+st.set_option('deprecation.showfileUploaderEncoding', False)
+
+
 if selectbox == 'Home Page':
     st.title("Welcome！")
     st.markdown("This website contains some useful techniques for TUFF's work. ")
