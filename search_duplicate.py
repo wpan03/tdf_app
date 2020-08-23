@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import tensorflow_hub as hub
 import numpy as np
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+import sentencepiece as spm
+
 
 def filter_search(df, keyword, year_min=2000, year_max=2019, donor='China', Active=True):
 
@@ -13,19 +17,51 @@ def filter_search(df, keyword, year_min=2000, year_max=2019, donor='China', Acti
     result = df[df['description'].str.contains(keyword, na=False, case=False)| df['title'].str.contains(keyword, na=False, case=False)].reset_index(drop=True)
     return result
 
-@st.cache
 def load_model():
-    embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder-large/5")
-    return embed
+    module = hub.Module("https://tfhub.dev/google/universal-sentence-encoder-lite/2")
+    return module
+
+def process_to_IDs_in_sparse_format(sp, sentences):
+    
+    ids = [sp.EncodeAsIds(x) for x in sentences]
+    max_len = max(len(x) for x in ids)
+    dense_shape=(len(ids), max_len)
+    values=[item for sublist in ids for item in sublist]
+    indices=[[row,col] for row in range(len(ids)) for col in range(len(ids[row]))]
+    return (values, indices, dense_shape)
 
 def cosine(u, v):
     return np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v))
 
-def get_embedding(embed, df):
-    titles = df['title'].to_list()
-    title_embeddings = embed(titles)
+def get_embedding(module, df):
 
-    return title_embeddings
+    titles = df['title'].to_list()
+
+    input_placeholder = tf.sparse_placeholder(tf.int64, shape=[None, None])
+    encodings = module(
+           inputs=dict(
+               values=input_placeholder.values,
+               indices=input_placeholder.indices,
+               dense_shape=input_placeholder.dense_shape))
+    
+    with tf.Session() as sess:
+        spm_path = sess.run(module(signature="spm_path"))
+
+    sp = spm.SentencePieceProcessor()
+    sp.Load(spm_path)
+
+    values, indices, dense_shape = process_to_IDs_in_sparse_format(sp, titles)
+
+    with tf.Session() as session:
+        
+        session.run([tf.global_variables_initializer(), tf.tables_initializer()])
+        message_embeddings = session.run(
+        encodings,
+        feed_dict={input_placeholder.values: values,
+                    input_placeholder.indices: indices,
+                    input_placeholder.dense_shape: dense_shape})
+
+    return message_embeddings
 
 
 def find_most_likely_duplicate(df, project_id, embeddings):
@@ -124,11 +160,12 @@ def search_duplicate():
       
     suggestion = st.button('make suggestions')
     if suggestion:
-       embed = load_model()
-       embeddings = get_embedding(embed, df)
+       module = load_model()
+       embeddings = get_embedding(module, df)
        df_potential = find_most_likely_duplicate(df, project_id, embeddings)
        st.write('The original title is:', df[df['project_id'] == project_id]['title'].iloc[0])
        st.table(df_potential)
+
 
   st.header('Useful Sources')
 
