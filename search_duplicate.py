@@ -17,10 +17,6 @@ def filter_search(df, keyword, year_min=2000, year_max=2019, donor='China', Acti
     result = df[df['description'].str.contains(keyword, na=False, case=False)| df['title'].str.contains(keyword, na=False, case=False)].reset_index(drop=True)
     return result
 
-@st.cache(allow_output_mutation=True)
-def load_model():
-    module = hub.Module("https://tfhub.dev/google/universal-sentence-encoder-lite/2")
-    return module
 
 def process_to_IDs_in_sparse_format(sp, sentences):
     
@@ -34,7 +30,11 @@ def process_to_IDs_in_sparse_format(sp, sentences):
 def cosine(u, v):
     return np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v))
 
-def get_embedding(module, df):
+@st.cache(allow_output_mutation=True)
+def get_embedding(df):
+
+    module = hub.Module("https://tfhub.dev/google/universal-sentence-encoder-lite/2")
+
 
     titles = df['title'].to_list()
 
@@ -160,9 +160,8 @@ def search_duplicate():
     project_id = st.number_input('project_id', value=0)
       
     suggestion = st.button('make suggestions')
+    embeddings = get_embedding(df)
     if suggestion:
-       module = load_model()
-       embeddings = get_embedding(module, df)
        df_potential = find_most_likely_duplicate(df, project_id, embeddings)
        st.write('The original title is:', df[df['project_id'] == project_id]['title'].iloc[0])
        st.table(df_potential)
