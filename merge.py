@@ -49,7 +49,7 @@ def merge():
             df_merge = pd.merge(df_stage2, df_export, left_on=left_identifier,
                                 right_on=right_identifier, how=how_to_merge)
 
-            selections = ['project_id', 'year_acc', 'flow_class', 'Country']
+            selections = ['project_id', 'year_acc', 'flow_class', 'flow', 'usd_current', 'Country']
             df_merge = df_merge[selections]
             st.markdown(get_table_download_link(
                 df_merge), unsafe_allow_html=True)
