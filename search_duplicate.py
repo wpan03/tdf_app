@@ -17,6 +17,7 @@ def filter_search(df, keyword, year_min=2000, year_max=2019, donor='China', Acti
     result = df[df['description'].str.contains(keyword, na=False, case=False)| df['title'].str.contains(keyword, na=False, case=False)].reset_index(drop=True)
     return result
 
+@st.cache(allow_output_mutation=True)
 def load_model():
     module = hub.Module("https://tfhub.dev/google/universal-sentence-encoder-lite/2")
     return module
