@@ -32,7 +32,7 @@ def merge():
 
         # Add info for year uncertain
         df_export['year'] = df_export['year'].fillna('')
-        df_export['year_info'] = np.where(df_export['year_uncertain'] == True, '(uncertain)', '')
+        df_export['year_info'] = np.where(df_export['year_uncertain'] is True, '(uncertain)', '')
         df_export['year_acc'] = df_export['year'] + df_export['year_info']
         df_export.drop('year_info', axis=1, inplace=True)
 
