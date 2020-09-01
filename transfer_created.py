@@ -6,6 +6,7 @@ import base64
 def reshape_dataframe(df):
     """
     Only keep columns with created projects information in the dataframe
+    and reshape those columns to a single column
 
     Parameters
     ----------
@@ -15,16 +16,33 @@ def reshape_dataframe(df):
     Returns
     -------
     df : pd.DataFrame
-    the shrinked dataframe 
+    the reshpaed dataframe
     """
+
     filter_col = [col for col in df if col.startswith('Projects Created')]
     df = df[filter_col]
     df = df.dropna(axis=1, how='all')
     df = df.melt().dropna(axis=0)
     return df
 
+
 def merge_df(all_sheet, update_2018=True):
-    """merge the created project id in each tab"""
+    """
+    merge the created project id in each tab
+
+    Parameters
+    ----------
+    all_sheet: the output of pd.Excelfile()
+
+    update_2018: bool
+    Determine whether the input stage 1 excel is in 2018 updated format
+
+
+    Returns
+    -------
+    df : pd.DataFrame
+    a dataframe contains all project ids from stage 1 excel sheet
+    """
 
     store = []
     sheets = all_sheet.sheet_names
@@ -70,32 +88,50 @@ def merge_df(all_sheet, update_2018=True):
                 df_select = df[['Projects Created']]
 
             store.append(df_select)
-        
-    df_merged = pd.concat(store).dropna().reset_index(drop=True) 
+
+    df_merged = pd.concat(store).dropna().reset_index(drop=True)
 
     return df_merged
 
+
 def clean_merge(df, delimiter):
+    """
+    break cell with multiple projects to one project per cell and drop duplicate project id
 
-        # break projects in one cell to one project per row
-        df['Projects Created'] = df['Projects Created'].astype(str)
-        special = df['Projects Created'].str.split(delimiter).notnull()
-        df.loc[special, 'Projects Created'] = df[special]['Projects Created'].str.split(
-            delimiter)
-        df = df.explode('Projects Created')
+    Parameters
+    ----------
+    df: pd.DataFrame
+    output of the function merge_df
 
-        # Format each cell
-        df['Projects Created'] = df['Projects Created'].astype(str)
-        special1 = df['Projects Created'].str.strip().notnull()
-        df.loc[special1, 'Projects Created'] = df[special1]['Projects Created'].str.strip()
+    delimiter: str
+    What delimiter stage 1 coder uses to separate project
 
-        # Drop duplicate
-        df_clean = df.drop_duplicates(
-            'Projects Created').reset_index(drop=True)
+    Returns
+    -------
+    df: pd.DataFrame
+    """
 
-        return df_clean
+    # break projects in one cell to one project per row
+    df['Projects Created'] = df['Projects Created'].astype(str)
+    special = df['Projects Created'].str.split(delimiter).notnull()
+    df.loc[special, 'Projects Created'] = df[special]['Projects Created'].str.split(
+        delimiter)
+    df = df.explode('Projects Created')
+
+    # Format each cell
+    df['Projects Created'] = df['Projects Created'].astype(str)
+    special1 = df['Projects Created'].str.strip().notnull()
+    df.loc[special1, 'Projects Created'] = df[special1]['Projects Created'].str.strip()
+
+    # Drop duplicate
+    df_clean = df.drop_duplicates(
+        'Projects Created').reset_index(drop=True)
+
+    return df_clean
+
 
 def get_create_ocp(file, delimiter, update_2018):
+    """Integrate merge_df and clean_merge"""
 
     all_sheet = pd.ExcelFile(file)
     df_merged = merge_df(all_sheet, update_2018)
@@ -103,7 +139,9 @@ def get_create_ocp(file, delimiter, update_2018):
 
     return df_clean
 
+
 def make_page_title():
+    """Title in the transferred created subpage"""
 
     st.subheader('Transfer OCP Created Project')
 
@@ -116,7 +154,10 @@ def make_page_title():
         st.markdown(
             "+ There should be no line above the header in the project list and year tab")
 
+
 def break_line_area(delimiter):
+    """Create a text input area in the subpage and
+    break the input text to separate lines based on delimiter"""
 
     st.subheader('Break text to different line')
     text_input = st.text_input('text')
@@ -124,6 +165,7 @@ def break_line_area(delimiter):
     if st.button('Split!'):
         for i in text_input_list:
             st.write(i)
+
 
 def get_table_download_link(df):
     """Generates a link allowing the data in a given panda dataframe to be downloaded
@@ -137,7 +179,8 @@ def get_table_download_link(df):
 
 
 def ocp_transfer_created():
-    
+    """The main function that runs in the subpage"""
+
     make_page_title()
 
     uploaded_file = st.file_uploader(
@@ -151,7 +194,6 @@ def ocp_transfer_created():
         df_ocp['source'] = 'OCP'
         df_ocp['country'] = country
         df_ocp = df_ocp[['source', 'country', 'Projects Created']]
-
 
         st.markdown(get_table_download_link(df_ocp), unsafe_allow_html=True)
         st.text('Congratulations!')
