@@ -5,7 +5,6 @@ import numpy as np
 import tensorflow.compat.v1 as tf
 import sentencepiece as spm
 
-
 tf.disable_v2_behavior()
 
 
@@ -37,7 +36,21 @@ def cosine(u, v):
 
 @st.cache(allow_output_mutation=True)
 def get_embedding(df):
-    module = hub.Module("https://tfhub.dev/google/universal-sentence-encoder-lite/2")
+    """
+    get embeddings for each title in the dataframe
+    see https://tfhub.dev/google/universal-sentence-encoder-lite/2 for details
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+    pd.read_csv() for the csv exported from Aiddata's website
+
+    Returns
+    -------
+    message_embeddings: numpy.ndarray
+    """
+
+    module = hub.Module('https://tfhub.dev/google/universal-sentence-encoder-lite/2')
 
     titles = df['title'].to_list()
 
@@ -68,6 +81,27 @@ def get_embedding(df):
 
 
 def find_most_likely_duplicate(df, project_id, embeddings):
+    """Identify 5 most likely duplicate projects for a project based on
+    title text similarity, year, flow type, flow class, crs,
+    whether it is official and donor agency
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+    pd.read_csv() for the csv exported from Aiddata's website
+
+    project_id: int
+    the project you want to identify its duplicate
+
+    embeddings: numpy.ndarray
+    the output of get_embedding
+
+    Returns
+    -------
+    df: pd.DataFrame
+    the id, score, and title of the 5 most likely duplicate projects
+    """
+
     index = df[df['project_id'] == project_id].index[0]
     target = df.iloc[index, :]
     target_embed = embeddings[index]
@@ -163,6 +197,8 @@ def search_duplicate():
 
         suggestion = st.button('make suggestions')
         embeddings = get_embedding(df)
+        st.write(embeddings)
+        st.write(type(embeddings))
         if suggestion:
             df_potential = find_most_likely_duplicate(df, project_id, embeddings)
             st.write('The original title is:', df[df['project_id'] == project_id]['title'].iloc[0])
