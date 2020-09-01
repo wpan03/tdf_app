@@ -7,5 +7,4 @@ The app.py runs the app and the test.py conduct unit test for some functions.
 Other .py file contains the code for each subpage.
 
 The rest of files are used for deploying the website.
-
-The test cases file contains some examples to run if the app will be redeployed. 
+ 
