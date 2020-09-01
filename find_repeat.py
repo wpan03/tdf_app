@@ -3,14 +3,33 @@ import streamlit as st
 import base64
 
 
-def find_repeat():
+def make_title():
+    """Make title of this subpage"""
+
     st.header('Find Repeated Projects in QA Amended and Stage 2')
     st.text("""Note: this program currently removes duplicate project from amended spreadsheet 
        if there is overlapping projects between amend and stage 2.""")
+
+
+def get_table_download_link(df):
+    """Generates a link allowing the data in a given panda dataframe to be downloaded
+    in:  dataframe
+    out: href string"""
+    csv = df.to_csv(index=False)
+    b64 = base64.b64encode(
+        csv.encode()).decode()  # some strings <-> bytes conversions necessary here
+    return f'<a href="data:file/csv;base64,{b64}" download="myfilename.csv">Download csv file</a>'
+
+
+def find_repeat():
+    """The main function that runs in the subpage"""
+
+    make_title()
+
     qa_file = st.file_uploader("Choose a qa excel file", type="xlsx")
     stage2_file = st.file_uploader('Choose the stage 2 excel file', type='xlsx')
 
-    if (qa_file != None) and (stage2_file != None):
+    if (qa_file is not None) and (stage2_file is not None):
         stage2_sheet = pd.ExcelFile(stage2_file)
         st2_sheet = st.selectbox('Which tab in the stage 2 spreadsheet?', stage2_sheet.sheet_names)
         df_stage2 = pd.read_excel(stage2_file, sheet_name=st2_sheet)
@@ -32,15 +51,6 @@ def find_repeat():
         repeat = df_qa[df_qa[qa_id].isin(target_stage2)][qa_id].reset_index(drop=True)
 
         if st.button('Get not repeated projects'):
-            def get_table_download_link(df):
-                """Generates a link allowing the data in a given panda dataframe to be downloaded
-                in:  dataframe
-                out: href string"""
-                csv = df.to_csv(index=False)
-                b64 = base64.b64encode(
-                    csv.encode()).decode()  # some strings <-> bytes conversions necessary here
-                return f'<a href="data:file/csv;base64,{b64}" download="myfilename.csv">Download csv file</a>'
-
             st.markdown(get_table_download_link(not_repeat), unsafe_allow_html=True)
             st.text('We found {} repeated projects, they are:'.format(df_qa.shape[0] - not_repeat.shape[0]))
             st.write(repeat)
