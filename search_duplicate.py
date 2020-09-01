@@ -197,8 +197,7 @@ def search_duplicate():
 
         suggestion = st.button('make suggestions')
         embeddings = get_embedding(df)
-        st.write(embeddings)
-        st.write(type(embeddings))
+
         if suggestion:
             df_potential = find_most_likely_duplicate(df, project_id, embeddings)
             st.write('The original title is:', df[df['project_id'] == project_id]['title'].iloc[0])
