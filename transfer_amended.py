@@ -25,6 +25,23 @@ def reshape_dataframe(df):
     return df
 
 
+def select_amend(df, i, sheets, keyword='Amended'):
+
+    select = None
+    for j in list(df.columns):
+        if keyword in j:
+            select = j
+            df_select = df[[select]]
+            df_select.columns = ['Projects Amended']
+            break
+
+    if select is None:
+        st.write(f'Column Projects Amended not in {sheets[i]}')
+        df_select = pd.DataFrame(columns=['Projects Amended'])
+
+    return df_select
+
+
 def merge_df(all_sheet, update_2018):
     """
     merge the amended project id in each tab
@@ -57,30 +74,16 @@ def merge_df(all_sheet, update_2018):
             # Project Revisions
             elif i == 1:
                 df = all_sheet.parse(i)
-                for i in list(df.columns):
-                    if 'Amended' in i:
-                        select1 = i
-                        df_select = df[[select1]]
-                        df_select.columns = ['Projects Amended']
-                        break
+                df_select = select_amend(df, i, sheets)
             # Project List
             elif i == 2:
                 df = all_sheet.parse(i)
-                for i in list(df.columns):
-                    if 'Existing' in i:
-                        select2 = i
-                        df_select = df[[select2]]
-                        df_select.columns = ['Projects Amended']
-                        break
+                df_select = select_amend(df, i, sheets, keyword="Existing")
+
             # years tab
             elif i >= 2:
                 df = all_sheet.parse(i)
-                for i in list(df.columns):
-                    if 'Amend' in i:
-                        select3 = i
-                        df_select = df[[select3]]
-                        df_select.columns = ['Projects Amended']
-                        break
+                df_select = select_amend(df, i, sheets)
 
             store.append(df_select)
 
@@ -88,27 +91,16 @@ def merge_df(all_sheet, update_2018):
         for i in range(len(sheets)):
             if i == 0:
                 df = all_sheet.parse(i, skiprows=[0])
-                for i in list(df.columns):
-                    if 'Amended' in i:
-                        select1 = i
-                df_select = df[[select1]]
-                df_select.columns = ['Projects Amended']
+                df_select = select_amend(df, i, sheets)
             elif i == 1:
                 df = all_sheet.parse(i)
-                for i in list(df.columns):
-                    if 'Existing' in i:
-                        select2 = i
-                df_select = df[[select2]]
-                df_select.columns = ['Projects Amended']
+                df_select = select_amend(df, i, sheets, keyword="Existing")
             elif i >= 2:
                 df = all_sheet.parse(i)
-                for i in list(df.columns):
-                    if 'Amend' in i:
-                        select3 = i
-                df_select = df[[select3]]
-                df_select.columns = ['Projects Amended']
+                df_select = select_amend(df, i, sheets)
 
             store.append(df_select)
+
     df_merged = pd.concat(store).dropna().reset_index(drop=True)
     return df_merged
 
