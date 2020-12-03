@@ -198,10 +198,12 @@ def search_duplicate():
         suggestion = st.button('make suggestions')
         embeddings = get_embedding(df)
 
-        if suggestion:
+        if suggestion and project_id in list(df['project_id'].values):
             df_potential = find_most_likely_duplicate(df, project_id, embeddings)
             st.write('The original title is:', df[df['project_id'] == project_id]['title'].iloc[0])
             st.table(df_potential)
+        else:
+            st.write('This project id is not in the uploaded spreadsheet')
 
     st.header('Useful Sources')
 
