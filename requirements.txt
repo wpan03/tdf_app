@@ -4,7 +4,7 @@ streamlit ==  0.65.2
 xlrd == 1.2.0
 numpy == 1.18.1
 requests == 2.22.0
-mechanize == 0.4.5
+mechanize == 0.4.6
 beautifulsoup4 == 4.8.2
 validators == 0.15.0
 tensorflow == 2.0.3
